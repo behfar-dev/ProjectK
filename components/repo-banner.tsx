@@ -3,7 +3,7 @@ import { Separator } from './ui/separator'
 import { cn } from '@/lib/utils'
 import { StarFilledIcon } from '@radix-ui/react-icons'
 
-const REPO_URL = 'https://github.com/e2b-dev/fragments'
+const REPO_URL = 'https://github.com/handzfun/Shardz'
 
 export function RepoBanner({ className }: { className?: string }) {
   return (
@@ -11,7 +11,7 @@ export function RepoBanner({ className }: { className?: string }) {
       href={REPO_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`View Fragments repository on GitHub`}
+      aria-label={`View Shardz repository on GitHub`}
       className={cn(
         'bg-background overflow-hidden px-3 py-1 rounded-t-2xl',
         'gap-2 flex items-center border border-b-0',
@@ -26,9 +26,7 @@ export function RepoBanner({ className }: { className?: string }) {
         className="h-6 bg-[hsl(var(--border))]"
         aria-hidden="true"
       />
-      <p className="text-sm font-medium text-foreground tracking-wide">
-        Star on GitHub
-      </p>
+      <p className="text-sm font-medium text-foreground tracking-wide">Star</p>
       <div
         className="flex items-center gap-1 text-foreground/80"
         role="status"

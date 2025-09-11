@@ -21,6 +21,8 @@ export function ChatInput({
   isRateLimited,
   stop,
   input,
+  placeholder,
+  hideAttachmentControls,
   handleInputChange,
   handleSubmit,
   isMultiModal,
@@ -35,6 +37,8 @@ export function ChatInput({
   isRateLimited: boolean
   stop: () => void
   input: string
+  placeholder?: string
+  hideAttachmentControls?: boolean
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   isMultiModal: boolean
@@ -187,7 +191,7 @@ export function ChatInput({
             maxRows={5}
             className="text-normal px-3 resize-none ring-0 bg-inherit w-full m-0 outline-none"
             required={true}
-            placeholder="Describe your app..."
+            placeholder={placeholder ?? 'Describe your app...'}
             disabled={isErrored}
             value={input}
             onChange={handleInputChange}
@@ -204,27 +208,31 @@ export function ChatInput({
               onChange={handleFileInput}
             />
             <div className="flex items-center flex-1 gap-2">
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={!isMultiModal || isErrored}
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="rounded-xl h-10 w-10"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        document.getElementById('multimodal')?.click()
-                      }}
-                    >
-                      <Paperclip className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add attachments</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              {files.length > 0 && filePreview}
+              {!hideAttachmentControls && (
+                <>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          disabled={!isMultiModal || isErrored}
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="rounded-xl h-10 w-10"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            document.getElementById('multimodal')?.click()
+                          }}
+                        >
+                          <Paperclip className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Add attachments</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {files.length > 0 && filePreview}
+                </>
+              )}
             </div>
             <div>
               {!isLoading ? (

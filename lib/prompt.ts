@@ -1,4 +1,5 @@
 import { Templates, templatesToPrompt } from '@/lib/templates'
+import { EngineerPrompt } from '@/lib/EngineerPrompt'
 
 export function toPrompt(template: Templates) {
   return `
@@ -9,7 +10,13 @@ export function toPrompt(template: Templates) {
     Do not touch project dependencies files like package.json, package-lock.json, requirements.txt, etc.
     Do not wrap code in backticks.
     Always break the lines correctly.
-    You can use one of the following templates:
+    When informing the user about anything, bear in mind that the user is a non-technical person.
+    
+
+    Here is your Role:
+    ${EngineerPrompt}
+
+    You can use one of the following templates for your task:
     ${templatesToPrompt(template)}
   `
 }

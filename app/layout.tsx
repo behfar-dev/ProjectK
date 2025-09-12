@@ -1,5 +1,5 @@
 import './globals.css'
-import { PostHogProvider, ThemeProvider } from './providers'
+import { PostHogProvider, ThemeProvider, SolanaProvider } from './providers'
 import { Toaster } from '@/components/ui/toaster'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
@@ -29,7 +29,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <SolanaProvider>
+              {children}
+            </SolanaProvider>
           </ThemeProvider>
           <Toaster />
           <Analytics />

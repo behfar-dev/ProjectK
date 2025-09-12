@@ -26,6 +26,47 @@ import { usePostHog } from 'posthog-js/react'
 import { SetStateAction, useEffect, useState } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import { EngineerPrompt } from '@/lib/EngineerPrompt'
+import { uploadImageToIPFS } from '@/lib/ipfs'
+// Modern color palettes for landing pages
+const COLOR_PALETTES = [
+  {
+    id: 'ocean',
+    name: 'Diamond Hands',
+    colors: ['#0F172A', '#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD'],
+    description: 'HODL strong with these diamond hands'
+  },
+  {
+    id: 'sunset',
+    name: 'Pump & Dump',
+    colors: ['#7C2D12', '#EA580C', '#F97316', '#FB923C', '#FED7AA'],
+    description: 'Ride the wave of gains and losses'
+  },
+  {
+    id: 'forest',
+    name: 'Green Candles',
+    colors: ['#14532D', '#16A34A', '#22C55E', '#4ADE80', '#86EFAC'],
+    description: 'Nothing but green candles to the moon'
+  },
+  {
+    id: 'royal',
+    name: 'Whale Vibes',
+    colors: ['#581C87', '#7C3AED', '#8B5CF6', '#A78BFA', '#C4B5FD'],
+    description: 'Big moves from the biggest players'
+  },
+  {
+    id: 'cyber',
+    name: 'Rekt Mode',
+    colors: ['#831843', '#BE185D', '#EC4899', '#F472B6', '#FBCFE8'],
+    description: 'When you get absolutely destroyed'
+  },
+  {
+    id: 'monochrome',
+    name: 'Paper Hands',
+    colors: ['#000000', '#374151', '#6B7280', '#9CA3AF', '#F9FAFB'],
+    description: 'Weak hands that fold under pressure'
+  }
+]
+
 export default function Home() {
   const [chatInput, setChatInput] = useLocalStorage('chat', '')
   const [files, setFiles] = useState<File[]>([])
@@ -57,6 +98,7 @@ export default function Home() {
   const [onboardingStep, setOnboardingStep] = useState<'details' | 'prompt'>('details')
   const [tokenLogo, setTokenLogo] = useState<File | null>(null)
   const [tokenLogoPreview, setTokenLogoPreview] = useState<string>('')
+  const [ipfsLogoUrl, setIpfsLogoUrl] = useState<string>('')
   const [tokenName, setTokenName] = useState('')
   const [tokenTicker, setTokenTicker] = useState('')
   const [initialBuyAmount, setInitialBuyAmount] = useState<number | ''>('')
@@ -65,11 +107,13 @@ export default function Home() {
   const [socialsOpen, setSocialsOpen] = useState(false)
   const [twitter, setTwitter] = useState('')
   const [website, setWebsite] = useState('')
+  const [selectedColorPalette, setSelectedColorPalette] = useState<string>('')
 
   const filteredModels = modelsList.models.filter((model) => {
     if (process.env.NEXT_PUBLIC_HIDE_LOCAL_MODELS) {
       return model.providerId !== 'ollama'
     }
+   
     return true
   })
 
@@ -278,6 +322,7 @@ export default function Home() {
     setSocialsOpen(false)
     setTwitter('')
     setWebsite('')
+    setSelectedColorPalette('')
   }
 
   function setCurrentPreview(preview: {
@@ -299,16 +344,21 @@ export default function Home() {
     if (file) {
       setTokenLogo(file)
       setTokenLogoPreview(URL.createObjectURL(file))
+      // Upload to IPFS immediately so generated site can reference a stable URL
+      uploadImageToIPFS(file)
+        .then((uri) => setIpfsLogoUrl(uri))
+        .catch((err) => console.warn('IPFS upload failed', err))
     }
   }
 
   function nextFromDetails() {
-    if (!tokenName || !tokenTicker) return
+    if (!tokenName || !tokenTicker || !tokenLogo) return
     setOnboardingStep('prompt')
   }
 
   async function startTokenBuild() {
     const content: Message['content'] = []
+    const selectedPalette = COLOR_PALETTES.find(p => p.id === selectedColorPalette)
     const lines: string[] = [
       `Token Name: ${tokenName}`,
       `Ticker: ${tokenTicker}`,
@@ -317,11 +367,14 @@ export default function Home() {
       projectDescription,
       website ? `Website: ${website}` : '',
       twitter ? `Twitter: ${twitter}` : '',
+      ipfsLogoUrl ? `MAIN TOKEN IMAGE URL: ${ipfsLogoUrl}` : '',
+      '',
+      selectedPalette ? `Color Palette: ${selectedPalette.name} - ${selectedPalette.description}. Use these colors: ${selectedPalette.colors.join(', ')}` : '',
       '',
       'Landing Page Prompt:',
       landingPrompt,
       '',
-  //    'Please generate a modern, high-converting landing page for this token project, including hero, tokenomics, roadmap, FAQs, and clear CTAs. Use the uploaded logo and theme the palette accordingly.',
+      'Please generate a modern, high-converting landing page for this token project, including hero, tokenomics, roadmap, FAQs, and clear CTAs. Use the uploaded logo and apply the specified color palette for a cohesive design.',
     ]
     content.push({ type: 'text', text: lines.join('\n') })
 
@@ -459,46 +512,82 @@ export default function Home() {
             <div className="mt-6 flex justify-between items-center">
               <div className="text-xs text-muted-foreground">Step {['details','prompt'].indexOf(onboardingStep) + 1} / 2</div>
               {onboardingStep === 'details' && (
-                <Button size="lg" onClick={nextFromDetails} disabled={!tokenName || !tokenTicker}>Continue</Button>
+                <Button size="lg" onClick={nextFromDetails} disabled={!tokenName || !tokenTicker || !tokenLogo}>Continue</Button>
               )}
             </div>
 
             {onboardingStep === 'prompt' && (
-              <Card className="mt-6 border-primary/20">
-                <CardHeader>
-                  <CardTitle>Describe your Landing Page and Project</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-2">
-                    <ChatPicker
-                      templates={templates}
-                      selectedTemplate={selectedTemplate}
-                      onSelectedTemplateChange={setSelectedTemplate}
-                      models={filteredModels}
-                      languageModel={languageModel}
-                      onLanguageModelChange={handleLanguageModelChange}
-                    />
-                  </div>
-                  <ChatInput
-                    retry={retry}
-                    isErrored={false}
-                    errorMessage={''}
-                    isLoading={isLoading}
-                    isRateLimited={false}
-                    stop={stop}
-                    input={landingPrompt}
-                    placeholder={'Describe your landing page sections, vibe, tone, and goals...'}
-                    handleInputChange={(e) => setLandingPrompt(e.target.value)}
-                    handleSubmit={(e) => { e.preventDefault(); startTokenBuild() }}
-                    isMultiModal={true}
-                    files={tokenLogo ? [tokenLogo] as unknown as File[] : []}
-                    handleFileChange={() => {}}
-                    hideAttachmentControls
-                  >
-                    <div />
-                  </ChatInput>
-                </CardContent>
-              </Card>
+              <div className="mt-6 space-y-6">
+                <Card className="border-primary/20">
+                  <CardHeader>
+                    <CardTitle>Choose Your Color Palette</CardTitle>
+                    <p className="text-sm text-muted-foreground">Select a color scheme that matches your project's vibe</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {COLOR_PALETTES.map((palette) => (
+                        <div
+                          key={palette.id}
+                          className={`cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md ${
+                            selectedColorPalette === palette.id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                          onClick={() => setSelectedColorPalette(palette.id)}
+                        >
+                          <div className="flex gap-2 mb-3">
+                            {palette.colors.map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-6 h-6 rounded-full border border-border/20"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                          <h4 className="font-medium text-sm">{palette.name}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{palette.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-primary/20">
+                  <CardHeader>
+                    <CardTitle>Describe your Landing Page and Project</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-2">
+                      <ChatPicker
+                        templates={templates}
+                        selectedTemplate={selectedTemplate}
+                        onSelectedTemplateChange={setSelectedTemplate}
+                        models={filteredModels}
+                        languageModel={languageModel}
+                        onLanguageModelChange={handleLanguageModelChange}
+                      />
+                    </div>
+                    <ChatInput
+                      retry={retry}
+                      isErrored={false}
+                      errorMessage={''}
+                      isLoading={isLoading}
+                      isRateLimited={false}
+                      stop={stop}
+                      input={landingPrompt}
+                      placeholder={'Describe your landing page sections, vibe, tone, and goals...'}
+                      handleInputChange={(e) => setLandingPrompt(e.target.value)}
+                      handleSubmit={(e) => { e.preventDefault(); startTokenBuild() }}
+                      isMultiModal={true}
+                      files={tokenLogo ? [tokenLogo] as unknown as File[] : []}
+                      handleFileChange={() => {}}
+                      hideAttachmentControls
+                    >
+                      <div />
+                    </ChatInput>
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
           </div>
@@ -558,6 +647,10 @@ export default function Home() {
             fragment={fragment}
             result={result as ExecutionResult}
             onClose={() => setFragment(undefined)}
+            initialName={tokenName}
+            initialTicker={tokenTicker}
+            initialDescription={projectDescription}
+            initialImageFile={tokenLogo}
           />
         </div>
       )}

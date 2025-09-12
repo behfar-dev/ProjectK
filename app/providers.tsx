@@ -4,6 +4,11 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { type ThemeProviderProps } from 'next-themes/dist/types'
 import posthog from 'posthog-js'
 import { PostHogProvider as PostHogProviderJS } from 'posthog-js/react'
+import { useMemo } from 'react'
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets'
+import '@solana/wallet-adapter-react-ui/styles.css'
 
 if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ENABLE_POSTHOG) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY ?? '', {
@@ -25,4 +30,22 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+}
+
+export function SolanaProvider({ children }: { children: React.ReactNode }) {
+  const endpoint =
+    process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://capable-virulent-sheet.solana-mainnet.quiknode.pro/6c2f6e46571625b28e692fee5b4f34edcf4a047d'
+
+  const wallets = useMemo(
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
+    [],
+  )
+
+  return (
+    <ConnectionProvider endpoint={endpoint} config={{ commitment: 'confirmed' }}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>{children}</WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  )
 }

@@ -1,4 +1,4 @@
-import { DeployDialog } from './deploy-dialog'
+import { ShareDeployDialog } from './share-deploy-dialog'
 import { FragmentCode } from './fragment-code'
 import { FragmentPreview } from './fragment-preview'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,11 @@ export function Preview({
   fragment,
   result,
   onClose,
+  // Prefill from onboarding
+  initialName,
+  initialTicker,
+  initialDescription,
+  initialImageFile,
 }: {
   teamID: string | undefined
   accessToken: string | undefined
@@ -35,6 +40,10 @@ export function Preview({
   fragment?: DeepPartial<FragmentSchema>
   result?: ExecutionResult
   onClose: () => void
+  initialName?: string
+  initialTicker?: string
+  initialDescription?: string
+  initialImageFile?: File | null
 }) {
   if (!fragment) {
     return null
@@ -99,12 +108,19 @@ export function Preview({
           {result && (
             <div className="flex items-center justify-end gap-2">
               {isLinkAvailable && (
-                <DeployDialog
-                  url={result.url!}
-                  sbxId={result.sbxId!}
-                  teamID={teamID}
-                  accessToken={accessToken}
-                />
+                <>
+                  <ShareDeployDialog
+                    url={result.url!}
+                    sbxId={result.sbxId!}
+                    teamID={teamID}
+                    accessToken={accessToken}
+                    initialName={initialName}
+                    initialTicker={initialTicker}
+                    initialDescription={initialDescription}
+                    initialWebsite={result.url!}
+                    initialImageFile={initialImageFile || null}
+                  />
+                </>
               )}
             </div>
           )}

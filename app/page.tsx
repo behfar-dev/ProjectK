@@ -16,7 +16,7 @@ import Image from 'next/image'
 import { useAuth } from '@/lib/auth'
 import { Message, toAISDKMessages, toMessageImage } from '@/lib/messages'
 import { LLMModelConfig } from '@/lib/models'
-import modelsList from '@/lib/models2.json'
+import modelsList from '@/lib/models.json'
 import { FragmentSchema, fragmentSchema as schema } from '@/lib/schema'
 import { supabase } from '@/lib/supabase'
 import templates, { TemplateId } from '@/lib/templates'
@@ -175,33 +175,41 @@ export default function Home() {
 
   const addMessage = useCallback((message: Message) => {
     setMessages((previousMessages) => [...previousMessages, message])
-    return [...messages, message]
-  }, [messages])
+  }, [])
 
   useEffect(() => {
-    if (object) {
-      setFragment(object)
-      const content: Message['content'] = [
-        { type: 'text', text: object.commentary || '' },
-        { type: 'code', text: object.code || '' },
-      ]
+    if (!object) return
 
-      if (!lastMessage || lastMessage.role !== 'assistant') {
-        addMessage({
-          role: 'assistant',
-          content,
-          object,
-        })
+    setFragment(object)
+
+    const content: Message['content'] = [
+      { type: 'text', text: object.commentary || '' },
+      { type: 'code', text: object.code || '' },
+    ]
+
+    setMessages((previousMessages) => {
+      const previousLast = previousMessages[previousMessages.length - 1]
+
+      if (!previousLast || previousLast.role !== 'assistant') {
+        return [
+          ...previousMessages,
+          { role: 'assistant', content, object } as Message,
+        ]
       }
 
-      if (lastMessage && lastMessage.role === 'assistant') {
-        setMessage({
-          content,
-          object,
-        })
+      const contentJson = JSON.stringify(content)
+      const prevContentJson = JSON.stringify(previousLast.content)
+      if (contentJson === prevContentJson) return previousMessages
+
+      const updated = [...previousMessages]
+      updated[updated.length - 1] = {
+        ...previousLast,
+        content,
+        object,
       }
-    }
-  }, [object, addMessage, lastMessage])
+      return updated
+    })
+  }, [object])
 
   useEffect(() => {
     if (error) stop()
@@ -239,10 +247,12 @@ export default function Home() {
       })
     }
 
-    const updatedMessages = addMessage({
+    const newMessage: Message = {
       role: 'user',
       content,
-    })
+    }
+    addMessage(newMessage)
+    const updatedMessages = [...messages, newMessage]
 
     submit({
       userID: session?.user?.id,
@@ -393,7 +403,9 @@ export default function Home() {
       }
     }
 
-    const updatedMessages = addMessage({ role: 'user', content })
+    const newMessage: Message = { role: 'user', content }
+    addMessage(newMessage)
+    const updatedMessages = [...messages, newMessage]
 
     submit({
       userID: session?.user?.id,

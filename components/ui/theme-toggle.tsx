@@ -18,7 +18,18 @@ export const ThemeToggle = forwardRef<
   }, [])
 
   if (!mounted) {
-    return null
+    return (
+      <Button
+        ref={ref}
+        variant="ghost"
+        size="icon"
+        className={className}
+        disabled
+        aria-hidden
+      >
+        <SunIcon className="h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+    )
   }
 
   return (

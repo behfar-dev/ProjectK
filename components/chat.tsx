@@ -4,6 +4,7 @@ import { ExecutionResult } from '@/lib/types'
 import { DeepPartial } from 'ai'
 import { LoaderIcon, Terminal, HandCoins } from 'lucide-react'
 import { useEffect } from 'react'
+import Image from 'next/image'
 
 export function Chat({
   messages,
@@ -22,7 +23,7 @@ export function Chat({
     if (chatContainer) {
       chatContainer.scrollTop = chatContainer.scrollHeight
     }
-  }, [JSON.stringify(messages)])
+  }, [messages])
 
   return (
     <div
@@ -40,11 +41,13 @@ export function Chat({
             }
             if (content.type === 'image') {
               return (
-                <img
+                <Image
                   key={id}
                   src={content.image}
                   alt="fragment"
                   className="mr-2 inline-block w-12 h-12 object-cover rounded-lg bg-white mb-2"
+                  width={48}
+                  height={48}
                 />
               )
             }

@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { useAuth } from '@/lib/auth'
 import { Message, toAISDKMessages, toMessageImage } from '@/lib/messages'
 import { LLMModelConfig } from '@/lib/models'
@@ -23,7 +24,7 @@ import { ExecutionResult } from '@/lib/types'
 import { DeepPartial } from 'ai'
 import { experimental_useObject as useObject } from 'ai/react'
 import { usePostHog } from 'posthog-js/react'
-import { SetStateAction, useEffect, useState } from 'react'
+import { SetStateAction, useCallback, useEffect, useState } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import { EngineerPrompt } from '@/lib/EngineerPrompt'
 import { uploadImageToIPFS } from '@/lib/ipfs'
@@ -169,6 +170,11 @@ export default function Home() {
     },
   })
 
+  const addMessage = useCallback((message: Message) => {
+    setMessages((previousMessages) => [...previousMessages, message])
+    return [...messages, message]
+  }, [messages])
+
   useEffect(() => {
     if (object) {
       setFragment(object)
@@ -192,11 +198,11 @@ export default function Home() {
         })
       }
     }
-  }, [object])
+  }, [object, addMessage, lastMessage])
 
   useEffect(() => {
     if (error) stop()
-  }, [error])
+  }, [error, stop])
 
   function setMessage(message: Partial<Message>, index?: number) {
     setMessages((previousMessages) => {
@@ -263,11 +269,6 @@ export default function Home() {
       model: currentModel,
       config: languageModel,
     })
-  }
-
-  function addMessage(message: Message) {
-    setMessages((previousMessages) => [...previousMessages, message])
-    return [...messages, message]
   }
 
   function handleSaveInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -487,7 +488,7 @@ export default function Home() {
                       <div className="flex items-center gap-3">
                         <div className="h-16 w-16 rounded-xl border overflow-hidden bg-muted">
                           {tokenLogoPreview && (
-                            <img src={tokenLogoPreview} alt="Token preview" className="h-full w-full object-cover" />
+                            <Image src={tokenLogoPreview} alt="Token preview" className="h-full w-full object-cover" width={64} height={64} />
                           )}
                         </div>
                         <div className="min-w-0">
@@ -521,7 +522,7 @@ export default function Home() {
                 <Card className="border-primary/20">
                   <CardHeader>
                     <CardTitle>Choose Your Color Palette</CardTitle>
-                    <p className="text-sm text-muted-foreground">Select a color scheme that matches your project's vibe</p>
+                    <p className="text-sm text-muted-foreground">Select a color scheme that matches your project&apos;s vibe</p>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

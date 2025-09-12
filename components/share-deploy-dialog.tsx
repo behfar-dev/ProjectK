@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CopyButton } from '@/components/ui/copy-button'
 import { gsap } from 'gsap'
 import { Rocket, Zap, Star, Crown, Copy, ExternalLink, CheckCircle2, Coins, TrendingUp, X } from 'lucide-react'
+import Image from 'next/image'
 
 type Props = {
   url: string
@@ -309,7 +310,7 @@ export function ShareDeployDialog({ url, sbxId, teamID, accessToken, initialName
               <div className="flex items-center gap-4">
                 <div className="relative w-20 h-20 rounded-xl border-2 border-indigo-300 overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
                   {imagePreview ? (
-                    <img src={imagePreview} alt="token logo" className="w-full h-full object-cover" />
+                    <Image src={imagePreview} alt="token logo" className="w-full h-full object-cover" width={80} height={80} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Coins className="w-8 h-8 text-indigo-400" />
@@ -573,7 +574,7 @@ export function ShareDeployDialog({ url, sbxId, teamID, accessToken, initialName
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-16 h-16 rounded-xl border-2 border-green-300 overflow-hidden bg-gradient-to-br from-green-100 to-emerald-100">
                     {imagePreview ? (
-                      <img src={imagePreview} alt="token logo" className="w-full h-full object-cover" />
+                      <Image src={imagePreview} alt="token logo" className="w-full h-full object-cover" width={80} height={80} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Coins className="w-8 h-8 text-green-500" />

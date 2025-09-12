@@ -72,7 +72,7 @@ export const useTokenCreation = (): UseTokenCreationReturn => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const uploadMetadata = async (metadata: TokenMetadata, pool: string): Promise<string> => {
+  const uploadMetadata = useCallback(async (metadata: TokenMetadata, pool: string): Promise<string> => {
     updateState({ 
       isUploadingMetadata: true, 
       progress: 25,
@@ -118,9 +118,9 @@ export const useTokenCreation = (): UseTokenCreationReturn => {
     } finally {
       updateState({ isUploadingMetadata: false });
     }
-  };
+  }, [updateState]);
 
-  const createUnsignedTransaction = async (
+  const createUnsignedTransaction = useCallback(async (
     metadata: TokenMetadata,
     config: TokenCreationConfig,
     mintKeypair: Keypair,
@@ -170,9 +170,9 @@ export const useTokenCreation = (): UseTokenCreationReturn => {
     } finally {
       updateState({ isCreatingTransaction: false });
     }
-  };
+  }, [updateState]);
 
-  const signAndSubmitTransaction = async (
+  const signAndSubmitTransaction = useCallback(async (
     unsignedTxData: Uint8Array,
     mintKeypair: Keypair,
     signer: Keypair | WalletLike,
@@ -234,7 +234,7 @@ export const useTokenCreation = (): UseTokenCreationReturn => {
     } finally {
       updateState({ isSubmittingTransaction: false });
     }
-  };
+  }, [updateState]);
 
   const createToken = useCallback(async (
     metadata: TokenMetadata,
@@ -302,7 +302,7 @@ export const useTokenCreation = (): UseTokenCreationReturn => {
       });
       return null;
     }
-  }, [updateState]);
+  }, [updateState, uploadMetadata, createUnsignedTransaction, signAndSubmitTransaction]);
 
   const reset = useCallback(() => {
     setState({

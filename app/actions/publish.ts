@@ -36,19 +36,13 @@ export async function publish(
   })
 
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
-    try {
-      const id = nanoid()
-      await kv.set(`fragment:${id}`, url, { px: expiration })
+    const id = nanoid()
+    await kv.set(`fragment:${id}`, url, { px: expiration })
 
-      return {
-        url: process.env.NEXT_PUBLIC_SITE_URL
-          ? `https://${process.env.NEXT_PUBLIC_SITE_URL}/s/${id}`
-          : `/s/${id}`,
-      }
-    } catch (error) {
-      console.error('KV error in publish:', error)
-      // If KV is unavailable, return the original URL
-      return { url }
+    return {
+      url: process.env.NEXT_PUBLIC_SITE_URL
+        ? `https://${process.env.NEXT_PUBLIC_SITE_URL}/s/${id}`
+        : `/s/${id}`,
     }
   }
 

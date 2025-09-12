@@ -70,7 +70,7 @@ export function ChatPicker({
           </SelectContent>
         </Select>
       </div>
-      {process.env.NODE_ENV !== 'production' && (
+      {process.env.NEXT_PUBLIC_FORCE_MODEL !== 'production' && (
         <div className="flex flex-col">
           <Select
             name="languageModel"

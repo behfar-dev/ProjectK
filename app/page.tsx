@@ -16,7 +16,7 @@ import Image from 'next/image'
 import { useAuth } from '@/lib/auth'
 import { Message, toAISDKMessages, toMessageImage } from '@/lib/messages'
 import { LLMModelConfig } from '@/lib/models'
-import modelsList from '@/lib/models.json'
+import modelsList from '@/lib/models2.json'
 import { FragmentSchema, fragmentSchema as schema } from '@/lib/schema'
 import { supabase } from '@/lib/supabase'
 import templates, { TemplateId } from '@/lib/templates'
@@ -112,8 +112,11 @@ export default function Home() {
 
   const filteredModels = modelsList.models.filter((model) => {
     if (process.env.NEXT_PUBLIC_HIDE_LOCAL_MODELS) {
-      return model.providerId !== 'ollama'
+      
+      return model.providerId !== 'ollama' && model.providerId !== 'mistral' && model.providerId !== 'google' && model.providerId !== 'anthropic' && model.providerId !== 'xai' && model.providerId !== 'groq' && model.providerId !== 'togetherai' && model.providerId !== 'fireworks' && model.providerId !== 'vertex' && model.providerId !== 'deepseek' && model.providerId !== 'groq' 
     }
+
+    
    
     return true
   })

@@ -41,7 +41,7 @@ export function AuthDialog({
             <Auth
               supabaseClient={supabase}
               view={view}
-              providers={['github', 'google']}
+              providers={[]}
               socialLayout="horizontal"
               onSignUpValidate={validateEmail}
               metadata={{}}
